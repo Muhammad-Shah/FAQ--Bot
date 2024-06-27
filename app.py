@@ -1,13 +1,24 @@
+import os
 import streamlit as st
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
-from ingest import rag_pipeline
+from ingest import rag_pipeline, create_embeddings
+from prompt import messages, system_prompt
+from dotenv import load_dotenv
+import random
+
+# Load environment variables from .env file
+load_dotenv('.env')
+
+# Access your API key
+GOOGLE_API = os.getenv("GOOGLE_API")
+HF_API = os.getenv('HF_TOKEN')
+PINECONE_API_KEY = os.getenv('PINECONE_API')
 
 
 st.subheader("We are Online👨‍🏭")
-
 
 # Example usage
 file_path = "data/FAQ.json"
@@ -18,6 +29,8 @@ model = "gemini-1.5-flash"
 temperature = 0.1
 max_tokens = 512
 top_p = 0.9
+
+embeddings = create_embeddings(model_name=model_name)
 
 # # One Logic to manage the chat conversation between user and assistant vanishing previous messages
 # def chat():
@@ -58,8 +71,14 @@ def chat():
             {"role": "assistant", "content": "👋 Hello We are Online"}
         ]
 
+    # Randomly select one dictionary from the list
+    selected_message = random.choice(messages)
+
+    # Extract the question
+    placeholder_msg = selected_message["question"]
+
     # Get user input and handle it if provided
-    if question := st.chat_input("Say something..."):
+    if question := st.chat_input(placeholder=placeholder_msg):
         # Add user's message to the conversation history
         st.session_state.messages.append({"role": "user", "content": question})
 
@@ -67,19 +86,19 @@ def chat():
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
-
+    print(st.session_state.messages)
     # If the last message is not from the assistant, generate a response
     if st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 # Generate a response using the LLM
-                result = rag_pipeline(file_path, jq_schema, model_name,
+                result = rag_pipeline(file_path, jq_schema, embeddings,
                                       persist_directory, model, temperature,
-                                      max_tokens, top_p, GOOGLE_API, system_prompt, query)
-                st.write(response)
+                                      max_tokens, top_p, GOOGLE_API, system_prompt, message)
+                st.write(result)
                 # Add the assistant's response to the conversation history
                 st.session_state.messages.append(
-                    {"role": "assistant", "content": response})
+                    {"role": "assistant", "content": result})
 
 
 if __name__ == '__main__':
