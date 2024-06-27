@@ -51,6 +51,11 @@ To use FAQ--Bot, follow these steps:
 - Pinecone
 - Hugging Face
 
+## Demo
+
+<img src='images/1.png'>
+<img src='images/2.png'>
+
 ## License
 
 This project is licensed under the MIT License.
