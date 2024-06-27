@@ -19,7 +19,7 @@ from prompt import system_prompt
 from pprint import pprint
 
 # Load environment variables from .env file
-load_dotenv('env')
+load_dotenv('.env')
 
 # Access your API key
 GOOGLE_API = os.getenv("GOOGLE_API")
