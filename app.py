@@ -3,19 +3,21 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
+from ingest import rag_pipeline
 
 
 st.subheader("We are Online👨‍🏭")
 
-def generate_response(prompt):
-    """Generates a response using LLM."""
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash",
-                                 temperature=0.1,
-                                 max_tokens=100,
-                                 top_p=0.9,
-                                 google_api_key="")
 
-    return llm.invoke(prompt).content
+# Example usage
+file_path = "data/FAQ.json"
+jq_schema = ".[]"
+model_name = "sentence-transformers/all-mpnet-base-v2"
+persist_directory = "./vectorstore"
+model = "gemini-1.5-flash"
+temperature = 0.1
+max_tokens = 512
+top_p = 0.9
 
 # # One Logic to manage the chat conversation between user and assistant vanishing previous messages
 # def chat():
@@ -41,6 +43,8 @@ def generate_response(prompt):
 #                 st.write(response)
 
 # Second Logic to manage the chat conversation between user and assistant displaying previous messages
+
+
 def chat():
     """
     Manages a chat conversation between user and assistant.
@@ -69,7 +73,9 @@ def chat():
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 # Generate a response using the LLM
-                response = generate_response(question)
+                result = rag_pipeline(file_path, jq_schema, model_name,
+                                      persist_directory, model, temperature,
+                                      max_tokens, top_p, GOOGLE_API, system_prompt, query)
                 st.write(response)
                 # Add the assistant's response to the conversation history
                 st.session_state.messages.append(
