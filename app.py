@@ -13,7 +13,7 @@ def generate_response(prompt):
                                  temperature=0.1,
                                  max_tokens=100,
                                  top_p=0.9,
-                                 google_api_key="AIzaSyAwFJZW0I1gA_954Wih96vDb3T0b-L9p84")
+                                 google_api_key="")
 
     return llm.invoke(prompt).content
 
