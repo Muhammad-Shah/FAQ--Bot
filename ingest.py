@@ -1,5 +1,5 @@
 import os
-import pinecone 
+import pinecone
 import streamlit as st
 from dotenv import load_dotenv
 from langchain import hub
@@ -37,7 +37,7 @@ def load_data(file_path, jq_schema):
     data = [Document(page_content=doc.page_content) for doc in data]
     return data
 
-
+@st.cache_resource
 def create_embeddings(model_name):
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
     return embeddings
@@ -53,12 +53,19 @@ def create_embeddings(model_name):
 #     return results
 
 
-def create_chroma_db(data, embeddings, persist_directory):
-    db = Chroma.from_documents(
-        data, embeddings, persist_directory=persist_directory)
+@st.cache_resource
+def create_chroma_db(file_path, jq_schema, embeddings, persist_directory):
+    if os.path.isdir(os.getcwd() + '/vectorstore'):
+        db = Chroma(persist_directory=persist_directory,
+                    embedding_function=embeddings)
+    else:
+        data = load_data(file_path=file_path, jq_schema=file_path)
+        db = Chroma.from_documents(
+            data, embeddings, persist_directory=persist_directory)
     return db
 
 
+# @st.cache_resource
 def create_pinecone_db(data, embeddings):
     # Initialize Pinecone client
     pc = Pinecone(api_key=PINECONE_API_KEY)
@@ -68,7 +75,7 @@ def create_pinecone_db(data, embeddings):
     index = pc.create_index(
         name=index_name,
         service_type=ServiceType.SIMILARITY,
-        dimension=1536, # Assuming embeddings is a numpy array
+        dimension=1536,  # Assuming embeddings is a numpy array
         repository=Repository.DENSE,
         data=docs_split
     )
@@ -120,19 +127,16 @@ def create_correction_prompt_template(query):
 def process_query(rag_chain, query, correction_prompt_template, llm):
     standalone_question = llm.invoke(correction_prompt_template).content
     result = rag_chain.invoke(standalone_question)
-    return standalone_question, result
+    return result
 
 
 # Efficiently call the functions for RAG
 def rag_pipeline(file_path, jq_schema, model_name, persist_directory, model, temperature, max_tokens, top_p, GOOGLE_API, system_prompt, query):
-    # Load data
-    data = load_data(file_path, jq_schema)
-
     # Create embeddings
     embeddings = create_embeddings(model_name)
 
     # Create the database
-    db = create_chroma_db(data, embeddings, persist_directory)
+    db = create_chroma_db(file_path, jq_schema, embeddings, persist_directory)
 
     # # Create the database
     # db = create_pinecone_db(data, embeddings)
@@ -150,10 +154,10 @@ def rag_pipeline(file_path, jq_schema, model_name, persist_directory, model, tem
     correction_prompt_template = create_correction_prompt_template(query)
 
     # Process the query
-    standalone_question, result = process_query(
+    result = process_query(
         rag_chain, query, correction_prompt_template, llm)
 
-    return standalone_question, result
+    return result
 
 
 # Example usage
@@ -162,13 +166,12 @@ jq_schema = ".[]"
 model_name = "sentence-transformers/all-mpnet-base-v2"
 persist_directory = "./vectorstore"
 model = "gemini-1.5-flash"
-temperature = 0.7
+temperature = 0.1
 max_tokens = 512
 top_p = 0.9
 query = "How can I create an account?"
 
-standalone_question, result = rag_pipeline(file_path, jq_schema, model_name,
-                                           persist_directory, model, temperature,
-                                           max_tokens, top_p, GOOGLE_API, system_prompt, query)
-pprint(standalone_question)
+result = rag_pipeline(file_path, jq_schema, model_name,
+                      persist_directory, model, temperature,
+                      max_tokens, top_p, GOOGLE_API, system_prompt, query)
 pprint(result)
