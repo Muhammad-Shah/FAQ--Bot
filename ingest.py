@@ -37,6 +37,7 @@ def load_data(file_path, jq_schema):
     data = [Document(page_content=doc.page_content) for doc in data]
     return data
 
+
 @st.cache_resource
 def create_embeddings(model_name):
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
@@ -54,10 +55,10 @@ def create_embeddings(model_name):
 
 
 @st.cache_resource
-def create_chroma_db(file_path, jq_schema, embeddings, persist_directory):
+def create_chroma_db(file_path, jq_schema, persist_directory, _embeddings):
     if os.path.isdir(os.getcwd() + '/vectorstore'):
         db = Chroma(persist_directory=persist_directory,
-                    embedding_function=embeddings)
+                    embedding_function=_embeddings)
     else:
         data = load_data(file_path=file_path, jq_schema=file_path)
         db = Chroma.from_documents(
@@ -66,7 +67,7 @@ def create_chroma_db(file_path, jq_schema, embeddings, persist_directory):
 
 
 # @st.cache_resource
-def create_pinecone_db(data, embeddings):
+def create_pinecone_db(data, _embeddings):
     # Initialize Pinecone client
     pc = Pinecone(api_key=PINECONE_API_KEY)
 
@@ -131,12 +132,10 @@ def process_query(rag_chain, query, correction_prompt_template, llm):
 
 
 # Efficiently call the functions for RAG
-def rag_pipeline(file_path, jq_schema, model_name, persist_directory, model, temperature, max_tokens, top_p, GOOGLE_API, system_prompt, query):
-    # Create embeddings
-    embeddings = create_embeddings(model_name)
+def rag_pipeline(file_path, jq_schema, embeddings, persist_directory, model, temperature, max_tokens, top_p, GOOGLE_API, system_prompt, query):
 
     # Create the database
-    db = create_chroma_db(file_path, jq_schema, embeddings, persist_directory)
+    db = create_chroma_db(file_path, jq_schema, persist_directory, embeddings)
 
     # # Create the database
     # db = create_pinecone_db(data, embeddings)
@@ -161,17 +160,17 @@ def rag_pipeline(file_path, jq_schema, model_name, persist_directory, model, tem
 
 
 # Example usage
-file_path = "data/FAQ.json"
-jq_schema = ".[]"
-model_name = "sentence-transformers/all-mpnet-base-v2"
-persist_directory = "./vectorstore"
-model = "gemini-1.5-flash"
-temperature = 0.1
-max_tokens = 512
-top_p = 0.9
-query = "How can I create an account?"
+# file_path = "data/FAQ.json"
+# jq_schema = ".[]"
+# model_name = "sentence-transformers/all-mpnet-base-v2"
+# persist_directory = "./vectorstore"
+# model = "gemini-1.5-flash"
+# temperature = 0.1
+# max_tokens = 512
+# top_p = 0.9
+# query = "How can I create an account?"
 
-result = rag_pipeline(file_path, jq_schema, model_name,
-                      persist_directory, model, temperature,
-                      max_tokens, top_p, GOOGLE_API, system_prompt, query)
-pprint(result)
+# result = rag_pipeline(file_path, jq_schema, model_name,
+#                       persist_directory, model, temperature,
+#                       max_tokens, top_p, GOOGLE_API, system_prompt, query)
+# pprint(result)
