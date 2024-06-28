@@ -28,6 +28,16 @@ PINECONE_API_KEY = os.getenv('PINECONE_API')
 
 
 def load_data(file_path, jq_schema):
+    """
+    Load data from a file using the provided file path and JSON schema.
+
+    Args:
+        file_path (str): The path to the file containing the data.
+        jq_schema (str): The JSON schema to be used for loading the data.
+
+    Returns:
+        list: A list of Document objects created from the loaded data.
+    """
     loader = JSONLoader(
         file_path=file_path,
         jq_schema=jq_schema,
@@ -40,6 +50,15 @@ def load_data(file_path, jq_schema):
 
 @st.cache_resource
 def create_embeddings(model_name):
+    """
+    Creates an instance of `HuggingFaceEmbeddings` with the specified `model_name` and caches it for future use.
+
+    Args:
+        model_name (str): The name of the Hugging Face model to use for embedding creation.
+
+    Returns:
+        HuggingFaceEmbeddings: The cached instance of `HuggingFaceEmbeddings` with the specified `model_name`.
+    """
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
     return embeddings
 
@@ -56,6 +75,18 @@ def create_embeddings(model_name):
 
 @st.cache_resource
 def create_chroma_db(file_path, jq_schema, persist_directory, _embeddings):
+    """
+    Creates a Chroma database using the given file path, JSON schema, persist directory, and embedding function.
+
+    Args:
+        file_path (str): The path to the file containing the data.
+        jq_schema (str): The JSON schema to be used for loading the data.
+        persist_directory (str): The directory where the database will be persisted.
+        _embeddings (HuggingFaceEmbeddings): The embedding function to use.
+
+    Returns:
+        Chroma: The created Chroma database.
+    """
     if os.path.isdir(os.getcwd() + '/vectorstore'):
         db = Chroma(persist_directory=persist_directory,
                     embedding_function=_embeddings)
@@ -68,6 +99,23 @@ def create_chroma_db(file_path, jq_schema, persist_directory, _embeddings):
 
 # @st.cache_resource
 def create_pinecone_db(data, _embeddings):
+    """
+    Creates a Pinecone index from the given data using the provided embeddings.
+
+    Args:
+        data (List[str]): A list of documents to be indexed.
+        _embeddings (PineconeEmbeddings): The embeddings to be used for indexing.
+
+    Returns:
+        PineconeIndex: The created Pinecone index.
+
+    Raises:
+        PineconeError: If there is an error creating the index.
+
+    Note:
+        The dimension of the index is assumed to be 1536, which is the dimension of the embeddings.
+        The repository used is DENSE.
+    """
     # Initialize Pinecone client
     pc = Pinecone(api_key=PINECONE_API_KEY)
 
@@ -85,6 +133,19 @@ def create_pinecone_db(data, _embeddings):
 
 
 def create_llm(model, temperature, max_tokens, top_p, GOOGLE_API):
+    """
+    Creates a ChatGoogleGenerativeAI object with the given parameters.
+
+    Args:
+        model (str): The name of the model to use for the ChatGoogleGenerativeAI.
+        temperature (float): The temperature parameter for the ChatGoogleGenerativeAI.
+        max_tokens (int): The maximum number of tokens to generate for the ChatGoogleGenerativeAI.
+        top_p (float): The top-p parameter for the ChatGoogleGenerativeAI.
+        GOOGLE_API (str): The API key for the ChatGoogleGenerativeAI.
+
+    Returns:
+        ChatGoogleGenerativeAI: The created ChatGoogleGenerativeAI object.
+    """
     llm = ChatGoogleGenerativeAI(model=model,
                                  temperature=temperature,
                                  max_tokens=max_tokens,
@@ -94,6 +155,15 @@ def create_llm(model, temperature, max_tokens, top_p, GOOGLE_API):
 
 
 def create_prompt(system_prompt):
+    """
+    Creates a chat prompt template using the given system prompt.
+
+    Args:
+        system_prompt (str): The system prompt to be used in the chat prompt template.
+
+    Returns:
+        ChatPromptTemplate: The created chat prompt template.
+    """
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", system_prompt),
@@ -108,6 +178,15 @@ def format_docs(docs):
 
 
 def create_rag_chain(retriever, prompt, llm):
+    """
+    Creates a RAG chain using the specified retriever, prompt, and llm objects.
+    Args:
+        retriever: The retriever object used in the RAG chain.
+        prompt: The prompt object used in the RAG chain.
+        llm: The llm object used in the RAG chain.
+    Returns:
+        The created RAG chain.
+    """
     rag_chain = (
         {"context": retriever | format_docs, "Question": RunnablePassthrough()}
         | prompt
@@ -118,6 +197,22 @@ def create_rag_chain(retriever, prompt, llm):
 
 
 def create_correction_prompt_template(query):
+    """
+    Creates a correction prompt template for a given user query.
+
+    Args:
+        query (str): The user query to be corrected.
+
+    Returns:
+        PromptTemplate: The created correction prompt template.
+
+    The correction prompt template is a PromptTemplate object that prompts the user to correct the given query as a standalone question for grammar and spelling errors. If there are no errors, the same query is returned.
+
+    Example:
+        >>> create_correction_prompt_template("What is the weather today?")
+        <PromptTemplate: Please correct the following user query as a standalone question for grammar and spelling if there are any errors. Otherwise, return the same query: {query}>
+
+    """
     template = PromptTemplate(
         input_variables=["query"],
         template="Please correct the following user query as a standalone question for grammar and spelling if there are any errors. Otherwise, return the same query: `{query}`",
@@ -126,6 +221,18 @@ def create_correction_prompt_template(query):
 
 
 def process_query(rag_chain, query, correction_prompt_template, llm):
+    """
+    Process a user query by invoking a correction prompt template to check for grammar and spelling errors. If there are no errors, the same query is returned. 
+
+    Args:
+        rag_chain (RAGChain): The RAG chain used to generate a response to the query.
+        query (str): The user query to be processed.
+        correction_prompt_template (PromptTemplate): The correction prompt template used to check for grammar and spelling errors.
+        llm (ChatGoogleGenerativeAI): The ChatGoogleGenerativeAI object used to generate a response to the query.
+
+    Returns:
+        str: The processed query with any grammar and spelling errors corrected.
+    """
     standalone_question = llm.invoke(correction_prompt_template).content
     result = rag_chain.invoke(standalone_question)
     return result
@@ -133,6 +240,25 @@ def process_query(rag_chain, query, correction_prompt_template, llm):
 
 # Efficiently call the functions for RAG
 def rag_pipeline(file_path, jq_schema, embeddings, persist_directory, model, temperature, max_tokens, top_p, GOOGLE_API, system_prompt, query):
+    """
+    Runs a pipeline to process a user query using a Retrieval-Augmented Generation (RAG) approach.
+
+    Args:
+        file_path (str): The path to the file containing the data to be ingested.
+        jq_schema (str): The JSON query schema used to extract data from the file.
+        embeddings (Embeddings): The embeddings model used to encode the data.
+        persist_directory (str): The directory where the database will be persisted.
+        model (str): The name of the language model used for generation.
+        temperature (float): The temperature parameter for the language model.
+        max_tokens (int): The maximum number of tokens to generate for the language model.
+        top_p (float): The top-p parameter for the language model.
+        GOOGLE_API (str): The API key for the Google API.
+        system_prompt (str): The system prompt used for the RAG chain.
+        query (str): The user query to be processed.
+
+    Returns:
+        str: The processed query with any grammar and spelling errors corrected.
+    """
 
     # Create the database
     db = create_chroma_db(file_path, jq_schema, persist_directory, embeddings)
@@ -159,7 +285,7 @@ def rag_pipeline(file_path, jq_schema, embeddings, persist_directory, model, tem
     return result
 
 
-# Example usage
+# # Example usage for Testing
 # file_path = "data/FAQ.json"
 # jq_schema = ".[]"
 # model_name = "sentence-transformers/all-mpnet-base-v2"
