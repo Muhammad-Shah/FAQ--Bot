@@ -71,14 +71,8 @@ def chat():
             {"role": "assistant", "content": "👋 Hello We are Online"}
         ]
 
-    # Randomly select one dictionary from the list
-    selected_message = random.choice(messages)
-
-    # Extract the question
-    placeholder_msg = selected_message["question"]
-
     # Get user input and handle it if provided
-    if question := st.chat_input(placeholder=placeholder_msg):
+    if question := st.chat_input(placeholder="How can I create an account?"):
         # Add user's message to the conversation history
         st.session_state.messages.append({"role": "user", "content": question})
 
@@ -86,7 +80,7 @@ def chat():
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
-    print(st.session_state.messages)
+
     # If the last message is not from the assistant, generate a response
     if st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
