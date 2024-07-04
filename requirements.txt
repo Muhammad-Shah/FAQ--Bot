@@ -9,3 +9,4 @@ langchain-text-splitters
 sentence-transformers 
 langchain-huggingface
 streamlit
+sqlite3 >= 3.35.0
