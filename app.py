@@ -14,9 +14,11 @@ load_dotenv('.env')
 
 # Access your API key
 GOOGLE_API = os.getenv("GOOGLE_API")
-HF_API = os.getenv('HF_TOKEN')
-PINECONE_API_KEY = os.getenv('PINECONE_API')
+# HF_API = os.getenv('HF_TOKEN')
+# PINECONE_API_KEY = os.getenv('PINECONE_API')
 
+GOOGLE_API = st.secrets["GOOGLE_API"]
+# HF_API = st.secrets["HF_TOKEN"]
 
 st.subheader("We are Online👨‍🏭")
 
@@ -27,7 +29,7 @@ model_name = "sentence-transformers/all-mpnet-base-v2"
 persist_directory = "./vectorstore"
 model = "gemini-1.5-flash"
 temperature = 0.1
-max_tokens = 512
+max_tokens = 256
 top_p = 0.9
 
 embeddings = create_embeddings(model_name=model_name)
@@ -97,4 +99,3 @@ def chat():
 
 if __name__ == '__main__':
     chat()
-
