@@ -5,7 +5,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from ingest import rag_pipeline, create_embeddings
-from prompt import messages, system_prompt
+from prompt import system_prompt
 from dotenv import load_dotenv
 import random
 
@@ -17,14 +17,14 @@ GOOGLE_API = os.getenv("GOOGLE_API")
 # HF_API = os.getenv('HF_TOKEN')
 # PINECONE_API_KEY = os.getenv('PINECONE_API')
 
-GOOGLE_API = st.secrets["GOOGLE_API"]
+# GOOGLE_API = st.secrets["GOOGLE_API"]
 # HF_API = st.secrets["HF_TOKEN"]
 
 st.subheader("We are Online👨‍🏭")
 
 # Example usage
 file_path = "data/FAQ.json"
-jq_schema = ".[]"
+jq_schema = "."
 model_name = "sentence-transformers/all-mpnet-base-v2"
 persist_directory = "./vectorstore"
 model = "gemini-1.5-flash"
