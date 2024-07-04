@@ -1,12 +1,10 @@
-transformers 
-datasets 
-langchain-core 
-langchain 
-langchain-community 
-langchain-google-genai 
-langchain_chroma 
-langchain-text-splitters 
-sentence-transformers 
-langchain-huggingface
-streamlit
-sqlite3 >= 3.35.0
+transformers==4.41.0
+langchain-core==0.2.9
+langchain==0.2.0
+langchain-community==0.2.0
+langchain-google-genai==1.0.6
+langchain_chroma==0.1.1
+langchain-text-splitters==0.2.0
+sentence-transformers==2.7.0
+langchain-huggingface==0.0.1
+streamlit==1.34.0
