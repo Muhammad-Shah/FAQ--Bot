@@ -1,5 +1,4 @@
 import os
-import pinecone
 import streamlit as st
 from dotenv import load_dotenv
 from langchain import hub
