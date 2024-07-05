@@ -4,7 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
-from ingest import rag_pipeline, create_embeddings
+from ingest import rag_pipeline, create_embeddings, create_chroma_db
 from prompt import system_prompt
 from dotenv import load_dotenv
 import random
@@ -18,7 +18,7 @@ GOOGLE_API = os.getenv("GOOGLE_API")
 # PINECONE_API_KEY = os.getenv('PINECONE_API')
 
 # GOOGLE_API = st.secrets["GOOGLE_API"]
-# HF_API = st.secrets["HF_TOKEN"]
+HF_API = st.secrets["HF_TOKEN"]
 
 st.subheader("We are Online👨‍🏭")
 
@@ -33,6 +33,7 @@ max_tokens = 256
 top_p = 0.9
 
 embeddings = create_embeddings(model_name=model_name)
+db = create_chroma_db(persist_directory=persist_directory, _embeddings=embeddings)
 
 # # One Logic to manage the chat conversation between user and assistant vanishing previous messages
 # def chat():
@@ -88,8 +89,7 @@ def chat():
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 # Generate a response using the LLM
-                result = rag_pipeline(file_path, embeddings,
-                                      persist_directory, model, temperature,
+                result = rag_pipeline(db.as_retriever(), model, temperature,
                                       max_tokens, top_p, GOOGLE_API, system_prompt, message)
                 st.write(result)
                 # Add the assistant's response to the conversation history
