@@ -1,6 +1,7 @@
 import sys
 __import__('pysqlite3')
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+import jq
 from pprint import pprint
 from prompt import system_prompt
 from langchain_core.documents import Document
@@ -40,14 +41,31 @@ def load_data():
     Returns:
         list: A list of Document objects created from the loaded data.
     """
-    loader = JSONLoader(
-        file_path="data/FAQ.json",
-        jq_schema='.[]',
-        text_content=False)
-
-    data = loader.load()
-    data = [Document(page_content=doc.page_content) for doc in data]
-    return data
+    try:
+        file_path = "data/FAQ.json"
+        jq_schema = '.[]'
+        
+        # Check if file exists
+        import os
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"The file {file_path} does not exist.")
+        
+        loader = JSONLoader(
+            file_path=file_path,
+            jq_schema=jq_schema,
+            text_content=False
+        )
+        
+        data = loader.load()
+        data = [Document(page_content=doc.page_content) for doc in data]
+        return data
+    
+    except FileNotFoundError as e:
+        print(f"File error: {e}")
+    except jq._jq.JqCompileError as e:
+        print(f"JQ compilation error: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 @st.cache_resource
