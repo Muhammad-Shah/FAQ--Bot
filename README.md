@@ -51,10 +51,16 @@ To use FAQ--Bot, follow these steps:
 - Pinecone
 - Hugging Face
 
+## Deployment
+
+You can Access it on [FAQ Chatbot](https://faq--bot.streamlit.app/)
+
 ## Demo
 
 <img src='images/1.png'>
 <img src='images/2.png'>
+<img src='images/3.png'>
+<img src='images/4.png'>
 
 ## License
 
