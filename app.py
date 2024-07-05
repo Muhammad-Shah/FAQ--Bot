@@ -88,7 +88,7 @@ def chat():
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 # Generate a response using the LLM
-                result = rag_pipeline(file_path, jq_schema, embeddings,
+                result = rag_pipeline(file_path, embeddings,
                                       persist_directory, model, temperature,
                                       max_tokens, top_p, GOOGLE_API, system_prompt, message)
                 st.write(result)

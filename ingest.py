@@ -1,24 +1,24 @@
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-import os
-import streamlit as st
-from dotenv import load_dotenv
-from langchain import hub
-from langchain_chroma import Chroma
-from langchain_core.output_parsers import StrOutputParser
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
-from langchain_core.runnables import RunnablePassthrough
-from langchain_community.vectorstores import Pinecone
-from langchain_community.document_loaders import JSONLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import PromptTemplate
-from langchain_core.documents import Document
-from prompt import system_prompt
 from pprint import pprint
+from prompt import system_prompt
+from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import JSONLoader
+from langchain_community.vectorstores import Pinecone
+from langchain_core.runnables import RunnablePassthrough
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_core.output_parsers import StrOutputParser
+from langchain_chroma import Chroma
+from langchain import hub
+from dotenv import load_dotenv
+import streamlit as st
+import os
+import sys
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Load environment variables from .env file
 load_dotenv('.env')
@@ -76,7 +76,7 @@ def create_embeddings(model_name):
 
 
 @st.cache_resource
-def create_chroma_db(file_path, jq_schema, persist_directory, _embeddings):
+def create_chroma_db(file_path, persist_directory, _embeddings):
     """
     Creates a Chroma database using the given file path, JSON schema, persist directory, and embedding function.
 
@@ -93,7 +93,7 @@ def create_chroma_db(file_path, jq_schema, persist_directory, _embeddings):
         db = Chroma(persist_directory=persist_directory,
                     embedding_function=_embeddings)
     else:
-        data = load_data(file_path=file_path, jq_schema=file_path)
+        data = load_data(file_path=file_path, jq_schema='.[]')
         db = Chroma.from_documents(
             data, embeddings, persist_directory=persist_directory)
     return db
@@ -241,7 +241,7 @@ def process_query(rag_chain, query, correction_prompt_template, llm):
 
 
 # Efficiently call the functions for RAG
-def rag_pipeline(file_path, jq_schema, embeddings, persist_directory, model, temperature, max_tokens, top_p, GOOGLE_API, system_prompt, query):
+def rag_pipeline(file_path, embeddings, persist_directory, model, temperature, max_tokens, top_p, GOOGLE_API, system_prompt, query):
     """
     Runs a pipeline to process a user query using a Retrieval-Augmented Generation (RAG) approach.
 
@@ -263,7 +263,7 @@ def rag_pipeline(file_path, jq_schema, embeddings, persist_directory, model, tem
     """
 
     # Create the database
-    db = create_chroma_db(file_path, jq_schema, persist_directory, embeddings)
+    db = create_chroma_db(file_path, persist_directory, embeddings)
 
     # # Create the database
     # db = create_pinecone_db(data, embeddings)
