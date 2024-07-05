@@ -17,8 +17,8 @@ GOOGLE_API = os.getenv("GOOGLE_API")
 # HF_API = os.getenv('HF_TOKEN')
 # PINECONE_API_KEY = os.getenv('PINECONE_API')
 
-# GOOGLE_API = st.secrets["GOOGLE_API"]
-HF_API = st.secrets["HF_TOKEN"]
+GOOGLE_API = st.secrets["GOOGLE_API"]
+# HF_API = st.secrets["HF_TOKEN"]
 
 st.subheader("We are Online👨‍🏭")
 
