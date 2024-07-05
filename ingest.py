@@ -1,3 +1,4 @@
+import sys
 __import__('pysqlite3')
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 from pprint import pprint
@@ -13,12 +14,11 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.output_parsers import StrOutputParser
-from langchain_chroma import Chroma
 from langchain import hub
 from dotenv import load_dotenv
 import streamlit as st
 import os
-import sys
+from langchain_chroma import Chroma
 
 # Load environment variables from .env file
 load_dotenv('.env')
