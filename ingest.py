@@ -62,8 +62,6 @@ def load_data():
     
     except FileNotFoundError as e:
         print(f"File error: {e}")
-    except jq._jq.JqCompileError as e:
-        print(f"JQ compilation error: {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
