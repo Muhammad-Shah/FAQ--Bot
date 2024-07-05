@@ -24,7 +24,7 @@ st.subheader("We are Online👨‍🏭")
 
 # Example usage
 file_path = "data/FAQ.json"
-jq_schema = "."
+jq_schema = ".[]"
 model_name = "sentence-transformers/all-mpnet-base-v2"
 persist_directory = "./vectorstore"
 model = "gemini-1.5-flash"
