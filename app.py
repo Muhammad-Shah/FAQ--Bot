@@ -1,26 +1,21 @@
 import os
 import streamlit as st
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
 from ingest import rag_pipeline, create_embeddings, create_chroma_db
 from prompt import system_prompt
 from dotenv import load_dotenv
-import random
+import sys
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Load environment variables from .env file
 load_dotenv('.env')
 
 # Access your API key
 # GOOGLE_API = os.getenv("GOOGLE_API")
-# HF_API = os.getenv('HF_TOKEN')
-# PINECONE_API_KEY = os.getenv('PINECONE_API')
 
 GOOGLE_API = st.secrets["GOOGLE_API"]
-# HF_API = st.secrets["HF_TOKEN"]
 
-st.subheader("We are Online👨‍🏭")
+# st.subheader("We are Online👨‍🏭")
 
 # Example usage
 file_path = "data/FAQ.json"
@@ -33,7 +28,8 @@ max_tokens = 256
 top_p = 0.9
 
 embeddings = create_embeddings(model_name=model_name)
-db = create_chroma_db(persist_directory=persist_directory, _embeddings=embeddings)
+db = create_chroma_db(persist_directory=persist_directory,
+                      _embeddings=embeddings)
 
 # # One Logic to manage the chat conversation between user and assistant vanishing previous messages
 # def chat():
@@ -71,7 +67,7 @@ def chat():
     # Initialize the conversation history if it doesn't exist
     if "messages" not in st.session_state.keys():
         st.session_state.messages = [
-            {"role": "assistant", "content": "👋 Hello We are Online"}
+            {"role": "assistant", "content": "👋 Hello We are Online👨‍🏭"}
         ]
 
     # Get user input and handle it if provided
@@ -90,7 +86,7 @@ def chat():
             with st.spinner("Thinking..."):
                 # Generate a response using the LLM
                 result = rag_pipeline(db.as_retriever(), model, temperature,
-                                      max_tokens, top_p, GOOGLE_API, system_prompt, message)
+                                      max_tokens, top_p, GOOGLE_API, system_prompt, message) or "I don't know"
                 st.write(result)
                 # Add the assistant's response to the conversation history
                 st.session_state.messages.append(
