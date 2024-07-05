@@ -93,7 +93,7 @@ def create_chroma_db(file_path, persist_directory, _embeddings):
         db = Chroma(persist_directory=persist_directory,
                     embedding_function=_embeddings)
     else:
-        data = load_data(file_path=file_path, jq_schema='.[]')
+        data = load_data(file_path=file_path, jq_schema='.[*]')
         db = Chroma.from_documents(
             data, embeddings, persist_directory=persist_directory)
     return db
