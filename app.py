@@ -13,7 +13,7 @@ import random
 load_dotenv('.env')
 
 # Access your API key
-GOOGLE_API = os.getenv("GOOGLE_API")
+# GOOGLE_API = os.getenv("GOOGLE_API")
 # HF_API = os.getenv('HF_TOKEN')
 # PINECONE_API_KEY = os.getenv('PINECONE_API')
 
