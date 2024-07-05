@@ -1,3 +1,5 @@
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 from pprint import pprint
 from prompt import system_prompt
 from langchain_core.documents import Document
@@ -17,8 +19,6 @@ from dotenv import load_dotenv
 import streamlit as st
 import os
 import sys
-__import__('pysqlite3')
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Load environment variables from .env file
 load_dotenv('.env')
@@ -29,7 +29,7 @@ HF_API = os.getenv('HF_TOKEN')
 PINECONE_API_KEY = os.getenv('PINECONE_API')
 
 
-def load_data(file_path, jq_schema):
+def load_data():
     """
     Load data from a file using the provided file path and JSON schema.
 
@@ -41,8 +41,8 @@ def load_data(file_path, jq_schema):
         list: A list of Document objects created from the loaded data.
     """
     loader = JSONLoader(
-        file_path=file_path,
-        jq_schema=jq_schema,
+        file_path="data/FAQ.json",
+        jq_schema='.[]',
         text_content=False)
 
     data = loader.load()
@@ -76,7 +76,7 @@ def create_embeddings(model_name):
 
 
 @st.cache_resource
-def create_chroma_db(file_path, persist_directory, _embeddings):
+def create_chroma_db(persist_directory, _embeddings):
     """
     Creates a Chroma database using the given file path, JSON schema, persist directory, and embedding function.
 
@@ -93,9 +93,9 @@ def create_chroma_db(file_path, persist_directory, _embeddings):
         db = Chroma(persist_directory=persist_directory,
                     embedding_function=_embeddings)
     else:
-        data = load_data(file_path=file_path, jq_schema='.[*]')
+        data = load_data()
         db = Chroma.from_documents(
-            data, embeddings, persist_directory=persist_directory)
+            data, _embeddings, persist_directory=persist_directory)
     return db
 
 
@@ -241,7 +241,7 @@ def process_query(rag_chain, query, correction_prompt_template, llm):
 
 
 # Efficiently call the functions for RAG
-def rag_pipeline(file_path, embeddings, persist_directory, model, temperature, max_tokens, top_p, GOOGLE_API, system_prompt, query):
+def rag_pipeline(retriever, model, temperature, max_tokens, top_p, GOOGLE_API, system_prompt, query):
     """
     Runs a pipeline to process a user query using a Retrieval-Augmented Generation (RAG) approach.
 
@@ -262,9 +262,6 @@ def rag_pipeline(file_path, embeddings, persist_directory, model, temperature, m
         str: The processed query with any grammar and spelling errors corrected.
     """
 
-    # Create the database
-    db = create_chroma_db(file_path, persist_directory, embeddings)
-
     # # Create the database
     # db = create_pinecone_db(data, embeddings)
 
@@ -275,7 +272,7 @@ def rag_pipeline(file_path, embeddings, persist_directory, model, temperature, m
     prompt = create_prompt(system_prompt)
 
     # Create the RAG chain
-    rag_chain = create_rag_chain(db.as_retriever(), prompt, llm)
+    rag_chain = create_rag_chain(retriever, prompt, llm)
 
     # Create correction prompt template
     correction_prompt_template = create_correction_prompt_template(query)
