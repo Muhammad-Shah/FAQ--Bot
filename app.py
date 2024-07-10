@@ -1,19 +1,20 @@
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+import sys
 import os
 import streamlit as st
 from ingest import rag_pipeline, create_embeddings, create_chroma_db
 from prompt import system_prompt
 from dotenv import load_dotenv
-import sys
-__import__('pysqlite3')
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 
 # Load environment variables from .env file
 load_dotenv('.env')
 
 # Access your API key
-# GOOGLE_API = os.getenv("GOOGLE_API")
+GOOGLE_API = os.getenv("GOOGLE_API")
 
-GOOGLE_API = st.secrets["GOOGLE_API"]
+# GOOGLE_API = st.secrets["GOOGLE_API"]
 
 # st.subheader("We are Online👨‍🏭")
 
