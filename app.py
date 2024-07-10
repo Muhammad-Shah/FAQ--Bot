@@ -9,12 +9,12 @@ from dotenv import load_dotenv
 
 
 # Load environment variables from .env file
-load_dotenv('.env')
+# load_dotenv('.env')
 
 # Access your API key
-GOOGLE_API = os.getenv("GOOGLE_API")
+# GOOGLE_API = os.getenv("GOOGLE_API")
 
-# GOOGLE_API = st.secrets["GOOGLE_API"]
+GOOGLE_API = st.secrets["GOOGLE_API"]
 
 # st.subheader("We are Online👨‍🏭")
 
