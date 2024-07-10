@@ -1,4 +1,5 @@
 pysqlite3-binary
+chromadb==0.5.3
 transformers==4.41.0
 langchain-core==0.2.9
 langchain==0.2.0
@@ -9,4 +10,4 @@ langchain-text-splitters==0.2.0
 sentence-transformers==2.7.0
 langchain-huggingface==0.0.1
 streamlit==1.34.0
-jq
+jq==1.7.0
