@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 GOOGLE_API = st.secrets["GOOGLE_API"]
 
 # st.subheader("We are Online👨‍🏭")
+st.set_page_config(layout="wide")
 
 # Example usage
 file_path = "data/FAQ.json"

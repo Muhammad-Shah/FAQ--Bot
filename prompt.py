@@ -10,7 +10,7 @@ Remember, clarity and brevity are key. Please provide concise responses in no mo
 **Context:**
     - For detailed guidance use the context below. Don't go outside of the context.
     - Look for {{"Question": "question asked", "Answer": "answer to the question"}} in the context.
-    - Remainder: if you don't know simply say You don't know with appropriate tone. 
+    - Remainder: if you don't know or did not find relevant answer to question simply say I don't know with appropriate tone. 
     \n\n
     {context}
     """
